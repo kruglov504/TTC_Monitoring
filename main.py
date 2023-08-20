@@ -1,27 +1,78 @@
-#from requests_html import HTMLSession
-import requests
 from bs4 import BeautifulSoup
-from selenium import webdriver
 from os import environ, pathsep
+from selenium import webdriver
+import time
 
-#C:\Program Files\Google\Chrome\Application\chrome.exe
+# SET THIS
+url = 'https://eu.tamrieltradecentre.com/pc/Trade/SearchResult?IconName=crafting_cloth_base_harvestersilk.png&ItemID=3799&ItemNamePattern=Ancestor+Silk&SortBy=LastSeen&Order=desc'
+
+MAX_PRICE = 20.0
+MIN_NUMBER = 100
+REQUEST_EACH = 90   # sec
+
+#############################################################################################################
+
 
 environ["PATH"] += pathsep + 'C:/Program Files/Google/Chrome/Application'
-browser = webdriver.Chrome()
+options = webdriver.ChromeOptions()
+options.add_argument('headless')
+browser = webdriver.Chrome(options=options)
+#browser = webdriver.Chrome()
 
-url = 'https://eu.tamrieltradecentre.com/pc/Trade/SearchResult?IconName=crafting_outfitter_potion_014.png&ItemID=211&ItemNamePattern=Dreugh+Wax&SortBy=LastSeen&Order=desc'
+# Class to saveData
+class ItemInfo:
+    def __init__(self, itemName, location, price, amount, lastSeen):
+        self.itemName = itemName
+        self.location = location
+        self.price = price
+        self.amount = amount
+        self.lastSeen = lastSeen
+        self.priceOk = float(self.price.replace(',', '')) <= MAX_PRICE
+        self.amountOk = float(self.amount.replace(',', '')) >= MIN_NUMBER
 
-browser.get(url)
-soup = BeautifulSoup(browser.page_source, "html.parser")
+    def itemOk(self):
+        return self.priceOk and self.amountOk
 
-table = soup.find('table', class_ = 'trade-list-table max-width')
-
-
-for elem in table.find_all('tbody'):
-    rows = elem.find_all('tr')
-    for row in rows:
-        rowData = row.find('td', class_ = 'bold hidden-xs')
-        print(row.text)
+    def printMsg(self):
+        print('item name: ' + self.itemName +
+              ' | location: ' + self.location +
+              ' | price: ' + self.price +
+              ' | amount: ' + self.amount +
+              ' | lastSeen: ' + self.lastSeen)
 
 
+def searchItem():
+    browser.get(url)
+
+    time.sleep(3)
+
+    soup = BeautifulSoup(browser.page_source, "html.parser")
+
+    table = soup.find('table', class_ = 'trade-list-table max-width')
+
+    # last prices
+    newItems = []
+
+    for elem in table.find_all('tbody'):
+        rows = elem.find_all('tr', class_ = 'cursor-pointer')
+        for row in rows:
+            newItems.append(ItemInfo(itemName = 'itemName',
+                                     location = 'location',
+                                     price = row.find('td', class_='gold-amount bold').find(attrs={'data-bind' : 'localizedNumber: UnitPrice'}).text,
+                                     amount = row.find('td', class_='gold-amount bold').find(attrs={'data-bind' : 'localizedNumber: Amount'}).text,
+                                     lastSeen = row.find('td', class_='bold hidden-xs').text))
+
+    # quit browser
+    #browser.quit()
+
+    # loop over items and print if price ok
+    for item in newItems:
+        if item.itemOk():
+            item.printMsg()
+
+
+if __name__ == "__main__":
+    while True:
+        searchItem()
+        time.sleep(REQUEST_EACH)
 
