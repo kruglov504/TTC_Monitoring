@@ -28,9 +28,10 @@ browser = webdriver.Firefox(options=options)
 
 # Class to saveData
 class ItemInfo:
-    def __init__(self, itemName, location, price, amount, lastSeen):
+    def __init__(self, itemName, location, guild, price, amount, lastSeen):
         self.itemName = itemName
         self.location = location
+        self.guild = guild
         self.price = price
         self.amount = amount
         self.lastSeen = lastSeen
@@ -43,6 +44,7 @@ class ItemInfo:
     def printMsg(self):
         print("\033[92m", "item name: ", self.itemName +
               " | location: " + self.location +
+              " | guild: " + self.guild +
               " | price: " + self.price +
               " | amount: " + self.amount +
               " | lastSeen: " + self.lastSeen, "\033[0m")
@@ -66,8 +68,9 @@ def searchItem():
     for elem in table.find_all('tbody'):
         rows = elem.find_all('tr', class_ = 'cursor-pointer')
         for row in rows:
-            newItems.append(ItemInfo(itemName = 'itemName',
-                                     location = 'location',
+            newItems.append(ItemInfo(itemName = row.find('td').find('div').text,
+                                     location = row.find('a', class_ = 'trade-list-clickable bold').text,
+                                     guild = row.find('div', attrs={'data-bind' : 'text: GuildName'}).text,
                                      price = row.find('td', class_='gold-amount bold').find(attrs={'data-bind' : 'localizedNumber: UnitPrice'}).text,
                                      amount = row.find('td', class_='gold-amount bold').find(attrs={'data-bind' : 'localizedNumber: Amount'}).text,
                                      lastSeen = row.find('td', class_='bold hidden-xs').text))
