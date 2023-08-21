@@ -2,22 +2,23 @@ from bs4 import BeautifulSoup
 from os import environ, pathsep
 from selenium import webdriver
 import time
+import os
+from selenium.common.exceptions import UnexpectedTagNameException
+os.system('color')
 
 # SET THIS
 url = 'https://eu.tamrieltradecentre.com/pc/Trade/SearchResult?IconName=crafting_cloth_base_harvestersilk.png&ItemID=3799&ItemNamePattern=Ancestor+Silk&SortBy=LastSeen&Order=desc'
 
-MAX_PRICE = 20.0
+MAX_PRICE = 80.0
 MIN_NUMBER = 100
 REQUEST_EACH = 90   # sec
 
 #############################################################################################################
 
-
-environ["PATH"] += pathsep + 'C:/Program Files/Google/Chrome/Application'
-options = webdriver.ChromeOptions()
-options.add_argument('headless')
-browser = webdriver.Chrome(options=options)
-#browser = webdriver.Chrome()
+options = webdriver.FirefoxOptions()
+options.add_argument('--headless')
+options.add_argument("--start-maximized")
+browser = webdriver.Firefox(options=options)
 
 # Class to saveData
 class ItemInfo:
@@ -34,11 +35,11 @@ class ItemInfo:
         return self.priceOk and self.amountOk
 
     def printMsg(self):
-        print('item name: ' + self.itemName +
-              ' | location: ' + self.location +
-              ' | price: ' + self.price +
-              ' | amount: ' + self.amount +
-              ' | lastSeen: ' + self.lastSeen)
+        print("\033[92m item name: ", self.itemName +
+              " | location: " + self.location +
+              " | price: " + self.price +
+              " | amount: " + self.amount +
+              " | lastSeen: " + self.lastSeen, "\033[0m")
 
 
 def searchItem():
@@ -62,8 +63,6 @@ def searchItem():
                                      amount = row.find('td', class_='gold-amount bold').find(attrs={'data-bind' : 'localizedNumber: Amount'}).text,
                                      lastSeen = row.find('td', class_='bold hidden-xs').text))
 
-    # quit browser
-    #browser.quit()
 
     # loop over items and print if price ok
     for item in newItems:
@@ -73,6 +72,9 @@ def searchItem():
 
 if __name__ == "__main__":
     while True:
-        searchItem()
+        try:
+            searchItem()
+        except UnexpectedTagNameException:
+            print('Exception in searchItem()')
         time.sleep(REQUEST_EACH)
 
