@@ -1,8 +1,6 @@
 from ItemMonitoringProcess import ItemMonitoringProcess
 import multiprocessing
-import datetime
 
-REQUEST_INTERVAL = 10
 
 itemList = []
 # Ancestor Silk
@@ -11,7 +9,7 @@ itemList.append(ItemMonitoringProcess(
     urlTimeout=10,
     maxPrice=20,
     minNumber=100,
-    requestInterval=REQUEST_INTERVAL))
+    requestInterval=10))
 
 # Rubedo Leather
 itemList.append(ItemMonitoringProcess(
@@ -19,7 +17,7 @@ itemList.append(ItemMonitoringProcess(
     urlTimeout=10,
     maxPrice=10,
     minNumber=100,
-    requestInterval=REQUEST_INTERVAL))
+    requestInterval=20))
 
 # Dreug Wax
 itemList.append(ItemMonitoringProcess(
@@ -27,22 +25,17 @@ itemList.append(ItemMonitoringProcess(
     urlTimeout=10,
     maxPrice=15000,
     minNumber=1,
-    requestInterval=REQUEST_INTERVAL))
+    requestInterval=30))
 
 
 if __name__ == "__main__":
-    while True:
-        print(datetime.datetime.now())  # output time stamp
-        futures = []
-        with multiprocessing.Pool() as pool:
-            for item in itemList:
-                futures.append(pool.apply_async(item.searchItem))
 
-            for future in futures:
-                try:
-                    future.get()
-                except Exception as e:
-                    pass
-                    #print("    Error = %s : %s" % (type(e), e))
+    proc = []
+    for item in itemList:
+        p = multiprocessing.Process(target=item.searchItem)
+        p.start()
+        proc.append(p)
 
+    for p in proc:
+        p.join()
 
