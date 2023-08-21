@@ -6,14 +6,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import WebDriverException
-import datetime
 import time
-
-
 from ItemInfo import ItemInfo
 import os
 os.system('color')  # to make colored console output
-
 
 class ItemMonitoringProcess:
     def __init__(self, url, urlTimeout, maxPrice, minNumber, requestInterval):
@@ -36,6 +32,8 @@ class ItemMonitoringProcess:
                 WebDriverWait(self.driver, self.urlTimeout).until(element_present)
             except TimeoutException:
                 print("\033[0;31m", "Timed out waiting for page to load", "\033[0m")
+
+            time.sleep(3)
 
             soup = BeautifulSoup(self.driver.page_source, "html.parser")
 
@@ -64,7 +62,6 @@ class ItemMonitoringProcess:
                         print('searchItem() -> No data')
 
             # loop over items and print if price ok
-            print(datetime.datetime.now())
             for item in newItems:
                 if item.itemOk():
                     item.printMsg()
