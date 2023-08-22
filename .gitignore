@@ -1,6 +1,6 @@
-# Ignore everything
-*
+# following
+venv/
+__pycache__/
+.idea/
 
-# But not these files...
-!.gitignore
-!*.py
+
